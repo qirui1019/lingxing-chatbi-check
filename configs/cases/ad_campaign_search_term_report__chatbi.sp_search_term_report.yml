@@ -43,6 +43,24 @@ compare:
   - same_sales
   - units
   - same_units
+  dimension_mappings:
+    profile_id: sid
+    campaign_id: campaign_id
+    ad_group_id: ad_group_id
+    target_id: target_id
+    query: query
+    report_date: report_date
+    sponsored_type: sponsored_type
+  metric_mappings:
+    spends: cost
+    sales: sales
+    impressions: impressions
+    clicks: clicks
+    orders: orders
+    direct_orders: same_orders
+    direct_sales: same_sales
+    ad_units: units
+    direct_units: same_units
   tolerance: 0.01
 notes:
   raw_dimensions:

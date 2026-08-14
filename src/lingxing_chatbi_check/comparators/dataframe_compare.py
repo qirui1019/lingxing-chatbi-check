@@ -15,31 +15,52 @@ class ComparisonResult:
 def compare_dataframes(
     tool_df: pd.DataFrame,
     db_df: pd.DataFrame,
-    dimensions: list[str],
-    metrics: list[str],
+    dimensions: list[str] | None = None,
+    metrics: list[str] | None = None,
+    dimension_mappings: dict[str, str] | None = None,
+    metric_mappings: dict[str, str] | None = None,
     tolerance: float = 0.0,
 ) -> ComparisonResult:
-    _require_columns(tool_df, dimensions + metrics, "tool_df")
-    _require_columns(db_df, dimensions + metrics, "db_df")
+    dimension_pairs = _mapping_pairs(dimensions, dimension_mappings)
+    metric_pairs = _mapping_pairs(metrics, metric_mappings)
 
-    merged = tool_df.merge(
+    _require_columns(tool_df, [pair[0] for pair in dimension_pairs + metric_pairs], "tool_df")
+    _require_columns(db_df, [pair[1] for pair in dimension_pairs + metric_pairs], "db_df")
+
+    prepared_tool = _prepare_frame(
+        tool_df,
+        dimension_pairs=dimension_pairs,
+        metric_pairs=metric_pairs,
+        side="tool",
+    )
+    prepared_db = _prepare_frame(
         db_df,
-        on=dimensions,
+        dimension_pairs=dimension_pairs,
+        metric_pairs=metric_pairs,
+        side="db",
+    )
+
+    join_columns = [_dimension_standard_name(pair) for pair in dimension_pairs]
+
+    merged = prepared_tool.merge(
+        prepared_db,
+        on=join_columns,
         how="outer",
-        suffixes=("_tool", "_db"),
         indicator=True,
     )
 
     detail_columns: dict[str, object] = {}
-    for dimension in dimensions:
-        detail_columns[dimension] = merged[dimension]
+    for pair in dimension_pairs:
+        standard_name = _dimension_standard_name(pair)
+        detail_columns[pair[0]] = merged[standard_name]
 
     row_pass_masks = []
-    for metric in metrics:
-        tool_col = f"{metric}_tool"
-        db_col = f"{metric}_db"
-        diff_col = f"{metric}_diff"
-        passed_col = f"{metric}_passed"
+    for metric_pair in metric_pairs:
+        tool_field, db_field = metric_pair
+        tool_col = f"tool.{tool_field}"
+        db_col = f"db.{db_field}"
+        diff_col = f"{tool_field}__{db_field}_diff"
+        passed_col = f"{tool_field}__{db_field}_passed"
 
         tool_values = pd.to_numeric(merged[tool_col], errors="coerce")
         db_values = pd.to_numeric(merged[db_col], errors="coerce")
@@ -88,3 +109,35 @@ def _require_columns(df: pd.DataFrame, columns: list[str], frame_name: str) -> N
     missing = [column for column in columns if column not in df.columns]
     if missing:
         raise ValueError(f"{frame_name} missing columns: {', '.join(missing)}")
+
+
+def _mapping_pairs(
+    fields: list[str] | None,
+    mappings: dict[str, str] | None,
+) -> list[tuple[str, str]]:
+    if mappings:
+        return [(str(tool_field), str(db_field)) for tool_field, db_field in mappings.items()]
+    return [(field, field) for field in (fields or [])]
+
+
+def _prepare_frame(
+    df: pd.DataFrame,
+    *,
+    dimension_pairs: list[tuple[str, str]],
+    metric_pairs: list[tuple[str, str]],
+    side: str,
+) -> pd.DataFrame:
+    columns: dict[str, object] = {}
+    for pair in dimension_pairs:
+        source_field = pair[0] if side == "tool" else pair[1]
+        columns[_dimension_standard_name(pair)] = df[source_field]
+    for tool_field, db_field in metric_pairs:
+        source_field = tool_field if side == "tool" else db_field
+        output_field = f"{side}.{source_field}"
+        columns[output_field] = df[source_field]
+    return pd.DataFrame(columns)
+
+
+def _dimension_standard_name(pair: tuple[str, str]) -> str:
+    tool_field, db_field = pair
+    return tool_field if tool_field == db_field else f"{tool_field}__{db_field}"

@@ -40,6 +40,11 @@ compare:
     - report_date
   metrics:
     - metric_1
+  dimension_mappings:
+    sid: sid
+    report_date: report_date
+  metric_mappings:
+    tool_metric_1: metric_1
   tolerance: 0.01
 
 notes:

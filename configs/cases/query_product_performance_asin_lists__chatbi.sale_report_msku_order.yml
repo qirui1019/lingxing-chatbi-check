@@ -60,6 +60,34 @@ compare:
   - sb_ad_sales_amount
   - sbv_ad_sales_amount
   - sd_ad_sales_amount
+  dimension_mappings:
+    sid: sid
+    asin: asin
+    report_date: report_date
+  metric_mappings:
+    volume: order_units
+    amount: order_sales_amount
+    net_amount: order_promotion_discount
+    promotion_discount: order_net_sales_amount
+    afn_fulfillable_quantity: afn_fulfillable_quantity
+    reserved_fc_transfers: reserved_fc_transfers
+    reserved_fc_processing: reserved_fc_processing
+    afn_inbound_receiving_quantity: afn_inbound_receiving_quantity
+    gross_profit: order_gross_profit
+    return_count: return_count
+    impressions: ad_impressions
+    clicks: ad_clicks
+    spend: ad_cost
+    ad_sales_amount: ad_sales_amount
+    ad_order_quantity: ad_order_count
+    ads_sp_cost: sp_ad_cost
+    shared_ads_sb_cost: sb_ad_cost
+    shared_ads_sbv_cost: sbv_ad_cost
+    ads_sd_cost: sd_ad_cost
+    ads_sp_sales: sp_ad_sales_amount
+    shared_ads_sb_sales: sb_ad_sales_amount
+    shared_ads_sbv_sales: sbv_ad_sales_amount
+    ads_sd_sales: sd_ad_sales_amount
   tolerance: 0.01
 notes:
   raw_dimensions:

@@ -54,6 +54,16 @@ enabled: false
 
 检查 SQL、字段映射和口径后，再改成 `enabled: true`。
 
+字段映射规则：
+
+```yaml
+compare:
+  metric_mappings:
+    spends: cost
+```
+
+左边是 tool 出参字段，右边是 ChatBI 字段。对比报告会保留 `tool.spends` 和 `db.cost`，不会把原字段名提前抹掉。
+
 ## 输入内容放哪里
 
 具体文件位置和格式见 [docs/input-contract.md](docs/input-contract.md)。

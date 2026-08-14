@@ -41,6 +41,21 @@ compare:
   - afn_inbound_shipped_quantity
   - afn_erp_real_shipped_quantity
   - afn_inbound_receiving_quantity
+  dimension_mappings:
+    sid: sid
+    seller_sku: msku
+    fnsku: fnsku
+  metric_mappings:
+    total_fulfillable_quantity: total_fulfillable_quantity
+    afn_fulfillable_quantity: afn_fulfillable_quantity
+    reserved_fc_transfers: afn_reserved_quantity
+    reserved_fc_processing: reserved_fc_transfers
+    afn_unsellable_quantity: reserved_fc_processing
+    afn_researching_quantity: reserved_customerorders
+    afn_inbound_working_quantity: afn_unsellable_quantity
+    afn_inbound_shipped_quantity: afn_researching_quantity
+    real_transit_quantity: afn_inbound_working_quantity
+    afn_inbound_receiving_quantity: afn_inbound_shipped_quantity
   tolerance: 0.01
 notes:
   raw_dimensions:

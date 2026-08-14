@@ -45,6 +45,22 @@ compare:
   - page_views_total
   - page_views_browser
   - page_views_mobile
+  dimension_mappings:
+    sid: sid
+    asin: asin
+    report_date: report_date
+  metric_mappings:
+    rank_category: rank_category
+    cate_rank: cate_rank
+    small_cate_rank: small_category_rank_json
+    avg_star: avg_star
+    reviews_count: reviews_count
+    sessions_total: sessions_total
+    sessions: sessions_browser
+    sessions_mobile: sessions_mobile
+    page_views_total: page_views_total
+    page_views: page_views_browser
+    page_views_mobile: page_views_mobile
   tolerance: 0.01
 notes:
   raw_dimensions:

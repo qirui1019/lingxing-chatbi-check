@@ -117,6 +117,11 @@ def build_case_template(row: AvailableToolRow) -> dict[str, Any]:
         "compare": {
             "dimensions": _split_dimensions(row.dimensions),
             "metrics": _split_fields(row.database_fields),
+            "dimension_mappings": _dimension_mappings(row.dimensions),
+            "metric_mappings": _ordered_mapping(
+                _split_fields(row.output_fields),
+                _split_fields(row.database_fields),
+            ),
             "tolerance": 0.01,
         },
         "notes": {
@@ -224,7 +229,9 @@ def _split_lines(
     values: list[str] = []
     normalized = str(text or "")
     if split_plus:
-        normalized = _strip_parenthetical_notes(normalized).replace("+", "\n")
+        normalized = _normalize_dimension_separators(
+            _strip_parenthetical_notes(normalized)
+        )
     for raw_line in normalized.splitlines():
         line = raw_line.strip()
         if not line or line in {"/", "-"}:
@@ -240,6 +247,45 @@ def _split_lines(
 
 def _normalize_database_table(value: str) -> str:
     return value.strip().replace("cahtbi.", "chatbi.")
+
+
+def _normalize_dimension_separators(value: str) -> str:
+    return re.sub(r"(?m)^\s*\+", "", value)
+
+
+def _ordered_mapping(tool_fields: list[str], database_fields: list[str]) -> dict[str, str]:
+    return {
+        tool_field: database_field
+        for tool_field, database_field in zip(tool_fields, database_fields)
+    }
+
+
+def _dimension_mappings(text: str) -> dict[str, str]:
+    mappings: dict[str, str] = {}
+    normalized = _normalize_dimension_separators(str(text or ""))
+    for raw_line in normalized.splitlines():
+        line = raw_line.strip()
+        if not line or line in {"/", "-"}:
+            continue
+        db_field = _first_identifier(_strip_parenthetical_notes(line))
+        if not db_field:
+            continue
+        tool_field = _extract_lingxing_field(line) or db_field
+        mappings[tool_field] = db_field
+    return mappings
+
+
+def _extract_lingxing_field(value: str) -> str | None:
+    note_match = re.search(r"领星中是\s*([^）)]*)", value)
+    if not note_match:
+        return None
+    note = note_match.group(1).strip()
+    if "+" in note or "/" in note:
+        return None
+    match = re.search(r"[A-Za-z_][A-Za-z0-9_]*", note)
+    if not match:
+        return None
+    return match.group(0)
 
 
 def _strip_parenthetical_notes(value: str) -> str:

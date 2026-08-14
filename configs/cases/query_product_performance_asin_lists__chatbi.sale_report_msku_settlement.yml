@@ -28,6 +28,8 @@ database:
 compare:
   dimensions: []
   metrics: []
+  dimension_mappings: {}
+  metric_mappings: {}
   tolerance: 0.01
 notes:
   raw_dimensions: []

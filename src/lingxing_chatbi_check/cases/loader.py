@@ -81,6 +81,14 @@ def _case_from_mapping(data: dict[str, Any], source: Path) -> CaseSpec:
         compare=CompareSpec(
             dimensions=[str(item) for item in compare["dimensions"]],
             metrics=[str(item) for item in compare["metrics"]],
+            dimension_mappings={
+                str(key): str(value)
+                for key, value in (compare.get("dimension_mappings") or {}).items()
+            },
+            metric_mappings={
+                str(key): str(value)
+                for key, value in (compare.get("metric_mappings") or {}).items()
+            },
             tolerance=float(compare.get("tolerance", 0.0)),
         ),
     )

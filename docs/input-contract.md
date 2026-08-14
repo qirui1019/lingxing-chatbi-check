@@ -98,6 +98,13 @@ compare:
   metrics:
     - order_units
     - order_sales_amount
+  dimension_mappings:
+    sid: sid
+    asin: asin
+    report_date: report_date
+  metric_mappings:
+    volume: order_units
+    amount: order_sales_amount
   tolerance: 0.01
 ```
 
@@ -114,6 +121,28 @@ compare:
 - `shop_batch_mode`：`single` 表示一次查一个店铺；`list` 表示一次传一批店铺。
 - `source_field`：从授权店铺结果里取哪个字段，例如 `sid` 或 `profile_id`。
 - `database_param`：注入 SQL 参数的名称，例如 `sid_values` 或 `profile_id_values`。
+
+`compare.dimension_mappings` 和 `compare.metric_mappings` 决定 tool 出参字段和数据库字段的对应关系：
+
+```yaml
+compare:
+  dimension_mappings:
+    profile_id: sid
+    report_date: report_date
+  metric_mappings:
+    spends: cost
+    direct_orders: same_orders
+```
+
+左边是领星 tool 出参字段，右边是 ChatBI 数据库字段。程序不会在清洗阶段强行改名，而是在对比前按这个映射统一比较；报告明细里会保留 `tool.<字段>` 和 `db.<字段>`，方便排查。
+
+从飞书生成 case 时，`metric_mappings` 会按“出参字段”和“对应数据库字段”的顺序一一生成。比如：
+
+```text
+spends -> cost
+sales -> sales
+impressions -> impressions
+```
 
 ## 3. MCP tool 出参样例
 

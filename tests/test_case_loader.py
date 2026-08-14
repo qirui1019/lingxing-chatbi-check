@@ -38,6 +38,8 @@ def test_load_case_reads_tool_database_compare_and_auth(tmp_path: Path) -> None:
                 "compare": {
                     "dimensions": ["shop_id", "date", "sku"],
                     "metrics": ["sales_amount", "order_count"],
+                    "dimension_mappings": {"profile_id": "shop_id"},
+                    "metric_mappings": {"spends": "sales_amount"},
                     "tolerance": 0.01,
                 },
             },
@@ -62,6 +64,8 @@ def test_load_case_reads_tool_database_compare_and_auth(tmp_path: Path) -> None:
     assert case.database.params == {"start_date": "2026-08-01"}
     assert case.compare.dimensions == ["shop_id", "date", "sku"]
     assert case.compare.metrics == ["sales_amount", "order_count"]
+    assert case.compare.dimension_mappings == {"profile_id": "shop_id"}
+    assert case.compare.metric_mappings == {"spends": "sales_amount"}
     assert case.compare.tolerance == 0.01
 
 

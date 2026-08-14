@@ -45,6 +45,8 @@ class DatabaseSpec:
 class CompareSpec:
     dimensions: list[str]
     metrics: list[str]
+    dimension_mappings: dict[str, str] = field(default_factory=dict)
+    metric_mappings: dict[str, str] = field(default_factory=dict)
     tolerance: float = 0.0
 
 

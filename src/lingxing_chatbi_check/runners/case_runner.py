@@ -69,6 +69,8 @@ async def run_case_async(
         db_df=db_df,
         dimensions=case.compare.dimensions,
         metrics=case.compare.metrics,
+        dimension_mappings=case.compare.dimension_mappings,
+        metric_mappings=case.compare.metric_mappings,
         tolerance=case.compare.tolerance,
     )
 
@@ -85,12 +87,18 @@ async def run_case_async(
             "shop_count": len(scoped_shops),
             "dimensions": ", ".join(case.compare.dimensions),
             "metrics": ", ".join(case.compare.metrics),
+            "dimension_mappings": _format_mapping(case.compare.dimension_mappings),
+            "metric_mappings": _format_mapping(case.compare.metric_mappings),
         },
     )
 
 
 def _safe_filename(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]+", "_", value)
+
+
+def _format_mapping(mapping: dict[str, str]) -> str:
+    return "\n".join(f"{tool_field} -> {db_field}" for tool_field, db_field in mapping.items())
 
 
 async def _call_tool_for_all_users(
