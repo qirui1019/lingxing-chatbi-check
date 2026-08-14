@@ -1,0 +1,38 @@
+name: "示例 tool vs 示例表"
+
+auth:
+  user_key: default
+
+tool:
+  name: "replace_with_lingxing_tool_name"
+  arguments:
+    start_date: "2026-08-01"
+    end_date: "2026-08-07"
+    shop_id: "替换为店铺 ID"
+
+database:
+  table: "replace_with_chatbi_table"
+  sql: |
+    select
+      shop_id,
+      stat_date as date,
+      sku,
+      sales_amount,
+      order_count
+    from replace_with_chatbi_table
+    where shop_id = :shop_id
+      and stat_date between :start_date and :end_date
+  params:
+    shop_id: "替换为店铺 ID"
+    start_date: "2026-08-01"
+    end_date: "2026-08-07"
+
+compare:
+  dimensions:
+    - shop_id
+    - date
+    - sku
+  metrics:
+    - sales_amount
+    - order_count
+  tolerance: 0.01
