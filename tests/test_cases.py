@@ -28,4 +28,6 @@ if not ENV_CONFIG.exists():
 def test_configured_case(case_path: Path) -> None:
     env_config = load_env_config(ENV_CONFIG)
     case = load_case(case_path)
+    if not case.enabled:
+        pytest.skip(f"case 未启用：{case_path}")
     run_case(case, env_config, Path("reports"))

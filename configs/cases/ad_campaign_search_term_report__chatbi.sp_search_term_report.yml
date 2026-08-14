@@ -1,0 +1,66 @@
+enabled: false
+name: ad_campaign_search_term_report vs chatbi.sp_search_term_report
+auth:
+  mode: all_users
+scope:
+  shop_discovery: ad_auth_shops
+  listing_mapping: null
+tool:
+  name: ad_campaign_search_term_report
+  arguments:
+    report_date: 2026-06-01 - 2026-06-30
+    sponsored_type: sp
+  dynamic_arguments:
+    shop_argument: profile_ids
+    shop_batch_mode: list
+    source_field: profile_id
+    batch_size: 50
+    database_param: profile_id_values
+database:
+  table: chatbi.sp_search_term_report
+  sql: "select\n  sid,\n  campaign_id,\n  ad_group_id,\n  target_id,\n  query,\n \
+    \ report_date,\n  sponsored_type,\n  cost,\n  sales,\n  impressions,\n  clicks,\n\
+    \  orders,\n  same_orders,\n  same_sales,\n  units,\n  same_units\nfrom chatbi.sp_search_term_report\n\
+    where profile_id in :profile_id_values\n"
+  params:
+    report_date: 2026-06-01 - 2026-06-30
+compare:
+  dimensions:
+  - sid
+  - campaign_id
+  - ad_group_id
+  - target_id
+  - query
+  - report_date
+  - sponsored_type
+  metrics:
+  - cost
+  - sales
+  - impressions
+  - clicks
+  - orders
+  - same_orders
+  - same_sales
+  - units
+  - same_units
+  tolerance: 0.01
+notes:
+  raw_dimensions:
+  - sid(领星中是profile_id)
+  - + campaign_id
+  - + ad_group_id
+  - + target_id（领星中是keyword_id / target_id ）
+  - +query
+  - + report_date
+  - (+sponsored_type=sp 领星中查询时需要加上这个筛选条件）
+  tool_output_fields:
+  - spends
+  - sales
+  - impressions
+  - clicks
+  - orders
+  - direct_orders
+  - direct_sales
+  - ad_units
+  - direct_units
+  source: 由 data/feishu/lingxing_mcp_tools.xlsx 的可用tool表生成，启用前请检查 SQL 和字段口径。

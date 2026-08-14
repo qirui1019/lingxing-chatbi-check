@@ -9,5 +9,7 @@ __pycache__/
 configs/env.local.yml
 reports/*.xlsx
 reports/*.json
+reports/**/*.xlsx
+reports/**/*.json
 data/samples/mcp_outputs/*.real.json
 data/samples/db_outputs/*.real.json

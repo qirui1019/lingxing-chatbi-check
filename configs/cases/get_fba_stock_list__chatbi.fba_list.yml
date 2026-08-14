@@ -1,0 +1,61 @@
+enabled: false
+name: get_fba_stock_list vs chatbi.fba_list
+auth:
+  mode: all_users
+scope:
+  shop_discovery: get_my_sids
+  listing_mapping: erp_listing
+tool:
+  name: get_fba_stock_list
+  arguments:
+    fulfillment_channel_type: FBA
+  dynamic_arguments:
+    shop_argument: sid
+    shop_batch_mode: single
+    source_field: sid
+    batch_size: 1
+    database_param: sid_values
+database:
+  table: chatbi.fba_list
+  sql: "select\n  sid,\n  msku,\n  fnsku,\n  total_fulfillable_quantity,\n  afn_fulfillable_quantity,\n\
+    \  afn_reserved_quantity,\n  reserved_fc_transfers,\n  reserved_fc_processing,\n\
+    \  reserved_customerorders,\n  afn_unsellable_quantity,\n  afn_researching_quantity,\n\
+    \  afn_inbound_working_quantity,\n  afn_inbound_shipped_quantity,\n  afn_erp_real_shipped_quantity,\n\
+    \  afn_inbound_receiving_quantity\nfrom chatbi.fba_list\nwhere sid in :sid_values\n"
+  params: {}
+compare:
+  dimensions:
+  - sid
+  - msku
+  - fnsku
+  metrics:
+  - total_fulfillable_quantity
+  - afn_fulfillable_quantity
+  - afn_reserved_quantity
+  - reserved_fc_transfers
+  - reserved_fc_processing
+  - reserved_customerorders
+  - afn_unsellable_quantity
+  - afn_researching_quantity
+  - afn_inbound_working_quantity
+  - afn_inbound_shipped_quantity
+  - afn_erp_real_shipped_quantity
+  - afn_inbound_receiving_quantity
+  tolerance: 0.01
+notes:
+  raw_dimensions:
+  - sid
+  - + msku（领星中是seller_sku ）
+  - + fnsku
+  tool_output_fields:
+  - total_fulfillable_quantity
+  - afn_fulfillable_quantity
+  - reserved_fc_transfers
+  - reserved_fc_processing
+  - afn_unsellable_quantity
+  - afn_researching_quantity
+  - afn_inbound_working_quantity
+  - afn_inbound_shipped_quantity
+  - real_transit_quantity
+  - afn_inbound_receiving_quantity
+  source: 由 data/feishu/lingxing_mcp_tools.xlsx 的可用tool表生成，启用前请检查 SQL 和字段口径。

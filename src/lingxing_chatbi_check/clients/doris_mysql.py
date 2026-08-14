@@ -41,15 +41,20 @@ class DorisMysqlClient:
         params: Mapping[str, Any] | None = None,
     ) -> pd.DataFrame:
         try:
-            from sqlalchemy import create_engine, text
+            from sqlalchemy import bindparam, create_engine, text
         except ImportError as exc:
             raise RuntimeError(
                 "Database dependencies are not installed. Run `python -m pip install -e .`."
             ) from exc
 
+        statement = text(sql)
+        for key, value in dict(params or {}).items():
+            if isinstance(value, (list, tuple, set)):
+                statement = statement.bindparams(bindparam(key, expanding=True))
+
         engine = create_engine(self._sqlalchemy_url())
         with engine.connect() as connection:
-            return pd.read_sql_query(text(sql), connection, params=dict(params or {}))
+            return pd.read_sql_query(statement, connection, params=dict(params or {}))
 
     def _sqlalchemy_url(self) -> str:
         user = quote_plus(self.user)

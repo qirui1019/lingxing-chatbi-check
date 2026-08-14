@@ -1,38 +1,46 @@
+enabled: false
 name: "示例 tool vs 示例表"
 
 auth:
-  user_key: default
+  mode: all_users
+
+scope:
+  shop_discovery: get_my_sids
+  listing_mapping: erp_listing
 
 tool:
   name: "replace_with_lingxing_tool_name"
   arguments:
     start_date: "2026-08-01"
     end_date: "2026-08-07"
-    shop_id: "替换为店铺 ID"
+  dynamic_arguments:
+    shop_argument: sids
+    shop_batch_mode: list
+    source_field: sid
+    batch_size: 50
+    database_param: sid_values
 
 database:
-  table: "replace_with_chatbi_table"
+  table: "chatbi.replace_with_chatbi_table"
   sql: |
     select
-      shop_id,
-      stat_date as date,
-      sku,
-      sales_amount,
-      order_count
-    from replace_with_chatbi_table
-    where shop_id = :shop_id
-      and stat_date between :start_date and :end_date
+      sid,
+      report_date,
+      metric_1
+    from chatbi.replace_with_chatbi_table
+    where sid in :sid_values
+      and report_date between :start_date and :end_date
   params:
-    shop_id: "替换为店铺 ID"
     start_date: "2026-08-01"
     end_date: "2026-08-07"
 
 compare:
   dimensions:
-    - shop_id
-    - date
-    - sku
+    - sid
+    - report_date
   metrics:
-    - sales_amount
-    - order_count
+    - metric_1
   tolerance: 0.01
+
+notes:
+  source: "示例模板。启用前请检查 tool 入参、SQL、维度和指标。"

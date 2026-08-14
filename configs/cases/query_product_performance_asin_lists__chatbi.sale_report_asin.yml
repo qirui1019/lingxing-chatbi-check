@@ -1,0 +1,66 @@
+enabled: false
+name: query_product_performance_asin_lists vs chatbi.sale_report_asin
+auth:
+  mode: all_users
+scope:
+  shop_discovery: get_my_sids
+  listing_mapping: erp_listing
+tool:
+  name: query_product_performance_asin_lists
+  arguments:
+    end_date: '2026-06-30'
+    start_date: '2026-06-01'
+    date_type: purchase
+    summary_field: asin
+    turn_on_summary: 1
+  dynamic_arguments:
+    shop_argument: sids
+    shop_batch_mode: list
+    source_field: sid
+    batch_size: 50
+    database_param: sid_values
+database:
+  table: chatbi.sale_report_asin
+  sql: "select\n  sid,\n  asin,\n  report_date,\n  rank_category,\n  cate_rank,\n\
+    \  small_category_rank_json,\n  avg_star,\n  reviews_count,\n  sessions_total,\n\
+    \  sessions_browser,\n  sessions_mobile,\n  page_views_total,\n  page_views_browser,\n\
+    \  page_views_mobile\nfrom chatbi.sale_report_asin\nwhere sid in :sid_values\n"
+  params:
+    end_date: '2026-06-30'
+    start_date: '2026-06-01'
+compare:
+  dimensions:
+  - sid
+  - asin
+  - report_date
+  metrics:
+  - rank_category
+  - cate_rank
+  - small_category_rank_json
+  - avg_star
+  - reviews_count
+  - sessions_total
+  - sessions_browser
+  - sessions_mobile
+  - page_views_total
+  - page_views_browser
+  - page_views_mobile
+  tolerance: 0.01
+notes:
+  raw_dimensions:
+  - sid
+  - +asin
+  - +report_date(领星中是start_date+end_date)
+  tool_output_fields:
+  - rank_category
+  - cate_rank
+  - small_cate_rank
+  - avg_star
+  - reviews_count
+  - sessions_total
+  - sessions
+  - sessions_mobile
+  - page_views_total
+  - page_views
+  - page_views_mobile
+  source: 由 data/feishu/lingxing_mcp_tools.xlsx 的可用tool表生成，启用前请检查 SQL 和字段口径。

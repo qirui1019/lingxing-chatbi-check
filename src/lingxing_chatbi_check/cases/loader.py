@@ -10,6 +10,8 @@ from lingxing_chatbi_check.cases.models import (
     CaseSpec,
     CompareSpec,
     DatabaseSpec,
+    DynamicArgumentsSpec,
+    ScopeSpec,
     ToolSpec,
 )
 
@@ -37,18 +39,39 @@ def load_cases(directory: Path) -> list[CaseSpec]:
 def _case_from_mapping(data: dict[str, Any], source: Path) -> CaseSpec:
     try:
         auth = data.get("auth") or {}
+        scope = data.get("scope") or {}
         tool = data["tool"]
         database = data["database"]
         compare = data["compare"]
     except KeyError as exc:
         raise ValueError(f"Missing required section {exc!s} in {source}") from exc
 
+    dynamic_arguments = tool.get("dynamic_arguments") or {}
+    auth_mode = str(auth.get("mode") or "single_user")
+    user_key = str(auth.get("user_key", "default"))
+    if auth_mode == "all_users" and "user_key" not in auth:
+        user_key = ""
+
     return CaseSpec(
         name=str(data.get("name") or source.stem),
-        auth=AuthSpec(user_key=str(auth.get("user_key", "default"))),
+        enabled=bool(data.get("enabled", True)),
+        auth=AuthSpec(mode=auth_mode, user_key=user_key),
+        scope=ScopeSpec(
+            shop_discovery=scope.get("shop_discovery"),
+            listing_mapping=scope.get("listing_mapping"),
+        ),
         tool=ToolSpec(
             name=str(tool["name"]),
             arguments=dict(tool.get("arguments") or {}),
+            dynamic_arguments=DynamicArgumentsSpec(
+                shop_argument=dynamic_arguments.get("shop_argument"),
+                shop_batch_mode=str(
+                    dynamic_arguments.get("shop_batch_mode", "none")
+                ),
+                source_field=str(dynamic_arguments.get("source_field", "sid")),
+                batch_size=int(dynamic_arguments.get("batch_size", 50)),
+                database_param=dynamic_arguments.get("database_param"),
+            ),
         ),
         database=DatabaseSpec(
             table=str(database["table"]),

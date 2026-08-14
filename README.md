@@ -23,9 +23,36 @@ python -m pytest -v
 默认测试只跑本地单元测试，不会连接领星 MCP 或 Doris/MySQL。需要执行真实集成校验时，再设置：
 
 ```powershell
-$env:LINGXING_RUN_INTEGRATION = "1"
-python -m pytest tests/test_cases.py -v
+python -m lingxing_chatbi_check run --cases configs/cases --env configs/env.local.yml --reports reports
 ```
+
+一次运行会在 `reports/` 下创建一个时间命名的文件夹，例如：
+
+```text
+reports/2026-08-14_14-35-20/
+```
+
+每个启用的 case 输出一份 Excel，文件名格式为：
+
+```text
+<tool名>__<ChatBI表名>.xlsx
+```
+
+## 从飞书导出生成 case 模板
+
+飞书导出的 Excel 放在 `data/feishu/lingxing_mcp_tools.xlsx` 后，可以运行：
+
+```powershell
+python -m lingxing_chatbi_check generate-cases --source data/feishu/lingxing_mcp_tools.xlsx --output configs/cases
+```
+
+生成的 case 默认是：
+
+```yaml
+enabled: false
+```
+
+检查 SQL、字段映射和口径后，再改成 `enabled: true`。
 
 ## 输入内容放哪里
 

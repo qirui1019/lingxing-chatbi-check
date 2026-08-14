@@ -1,0 +1,93 @@
+enabled: false
+name: query_product_performance_asin_lists vs chatbi.sale_report_msku_order
+auth:
+  mode: all_users
+scope:
+  shop_discovery: get_my_sids
+  listing_mapping: erp_listing
+tool:
+  name: query_product_performance_asin_lists
+  arguments:
+    end_date: '2026-06-30'
+    start_date: '2026-06-01'
+    date_type: purchase
+    summary_field: asin
+    turn_on_summary: 1
+  dynamic_arguments:
+    shop_argument: sids
+    shop_batch_mode: list
+    source_field: sid
+    batch_size: 50
+    database_param: sid_values
+database:
+  table: chatbi.sale_report_msku_order
+  sql: "select\n  sid,\n  asin,\n  report_date,\n  order_units,\n  order_sales_amount,\n\
+    \  order_promotion_discount,\n  order_net_sales_amount,\n  afn_fulfillable_quantity,\n\
+    \  reserved_fc_transfers,\n  reserved_fc_processing,\n  afn_inbound_receiving_quantity,\n\
+    \  order_gross_profit,\n  return_count,\n  ad_impressions,\n  ad_clicks,\n  ad_cost,\n\
+    \  ad_sales_amount,\n  ad_order_count,\n  sp_ad_cost,\n  sb_ad_cost,\n  sbv_ad_cost,\n\
+    \  sd_ad_cost,\n  sp_ad_sales_amount,\n  sb_ad_sales_amount,\n  sbv_ad_sales_amount,\n\
+    \  sd_ad_sales_amount\nfrom chatbi.sale_report_msku_order\nwhere sid in :sid_values\n"
+  params:
+    end_date: '2026-06-30'
+    start_date: '2026-06-01'
+compare:
+  dimensions:
+  - sid
+  - asin
+  - report_date
+  metrics:
+  - order_units
+  - order_sales_amount
+  - order_promotion_discount
+  - order_net_sales_amount
+  - afn_fulfillable_quantity
+  - reserved_fc_transfers
+  - reserved_fc_processing
+  - afn_inbound_receiving_quantity
+  - order_gross_profit
+  - return_count
+  - ad_impressions
+  - ad_clicks
+  - ad_cost
+  - ad_sales_amount
+  - ad_order_count
+  - sp_ad_cost
+  - sb_ad_cost
+  - sbv_ad_cost
+  - sd_ad_cost
+  - sp_ad_sales_amount
+  - sb_ad_sales_amount
+  - sbv_ad_sales_amount
+  - sd_ad_sales_amount
+  tolerance: 0.01
+notes:
+  raw_dimensions:
+  - sid
+  - +asin
+  - +report_date(领星中是start_date+end_date)
+  tool_output_fields:
+  - volume
+  - amount
+  - net_amount
+  - promotion_discount
+  - afn_fulfillable_quantity
+  - reserved_fc_transfers
+  - reserved_fc_processing
+  - afn_inbound_receiving_quantity
+  - gross_profit
+  - return_count
+  - impressions
+  - clicks
+  - spend
+  - ad_sales_amount
+  - ad_order_quantity
+  - ads_sp_cost
+  - shared_ads_sb_cost
+  - shared_ads_sbv_cost
+  - ads_sd_cost
+  - ads_sp_sales
+  - shared_ads_sb_sales
+  - shared_ads_sbv_sales
+  - ads_sd_sales
+  source: 由 data/feishu/lingxing_mcp_tools.xlsx 的可用tool表生成，启用前请检查 SQL 和字段口径。
