@@ -11,6 +11,7 @@ from lingxing_chatbi_check.cases.models import (
     CompareSpec,
     DatabaseSpec,
     DynamicArgumentsSpec,
+    PaginationSpec,
     ScopeSpec,
     ToolSpec,
 )
@@ -33,7 +34,8 @@ def load_cases(directory: Path) -> list[CaseSpec]:
     if not directory.exists():
         raise FileNotFoundError(f"Case directory not found: {directory}")
 
-    return [load_case(path) for path in sorted(directory.glob("*.yml"))]
+    paths = sorted([*directory.glob("*.yml"), *directory.glob("*.yaml")])
+    return [load_case(path) for path in paths]
 
 
 def _case_from_mapping(data: dict[str, Any], source: Path) -> CaseSpec:
@@ -47,6 +49,7 @@ def _case_from_mapping(data: dict[str, Any], source: Path) -> CaseSpec:
         raise ValueError(f"Missing required section {exc!s} in {source}") from exc
 
     dynamic_arguments = tool.get("dynamic_arguments") or {}
+    pagination = tool.get("pagination") or {}
     auth_mode = str(auth.get("mode") or "single_user")
     user_key = str(auth.get("user_key", "default"))
     if auth_mode == "all_users" and "user_key" not in auth:
@@ -69,8 +72,31 @@ def _case_from_mapping(data: dict[str, Any], source: Path) -> CaseSpec:
                     dynamic_arguments.get("shop_batch_mode", "none")
                 ),
                 source_field=str(dynamic_arguments.get("source_field", "sid")),
+                database_source_field=(
+                    str(dynamic_arguments["database_source_field"])
+                    if dynamic_arguments.get("database_source_field") is not None
+                    else None
+                ),
                 batch_size=int(dynamic_arguments.get("batch_size", 50)),
                 database_param=dynamic_arguments.get("database_param"),
+            ),
+            pagination=(
+                PaginationSpec(
+                    enabled=bool(pagination.get("enabled", False)),
+                    page_argument=str(pagination.get("page_argument", "page")),
+                    page_start=int(pagination.get("page_start", 1)),
+                    page_size_argument=str(
+                        pagination.get("page_size_argument", "length")
+                    ),
+                    page_size=int(pagination.get("page_size", 1000)),
+                    max_pages=int(pagination.get("max_pages", 1000)),
+                    page_value_mode=str(pagination.get("page_value_mode", "page")),
+                    batch_timeout_seconds=_pagination_batch_timeout_seconds(
+                        pagination
+                    ),
+                )
+                if pagination
+                else None
             ),
         ),
         database=DatabaseSpec(
@@ -89,6 +115,26 @@ def _case_from_mapping(data: dict[str, Any], source: Path) -> CaseSpec:
                 str(key): str(value)
                 for key, value in (compare.get("metric_mappings") or {}).items()
             },
+            metric_dimension_mappings={
+                str(metric): {
+                    str(tool_field): str(db_field)
+                    for tool_field, db_field in (mapping or {}).items()
+                }
+                for metric, mapping in (
+                    compare.get("metric_dimension_mappings") or {}
+                ).items()
+            },
             tolerance=float(compare.get("tolerance", 0.0)),
         ),
     )
+
+
+def _pagination_batch_timeout_seconds(
+    pagination: dict[str, Any],
+) -> float | None:
+    if "batch_timeout_seconds" not in pagination:
+        return 300
+    value = pagination["batch_timeout_seconds"]
+    if value is None:
+        return None
+    return float(value)

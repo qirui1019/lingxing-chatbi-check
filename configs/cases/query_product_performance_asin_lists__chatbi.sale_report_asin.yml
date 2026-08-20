@@ -8,51 +8,114 @@ scope:
 tool:
   name: query_product_performance_asin_lists
   arguments:
-    end_date: '2026-06-30'
-    start_date: '2026-06-01'
+    end_date: "2026-07-31"
+    start_date: "2026-07-01"
     date_type: purchase
+    currency_code: ""
     summary_field: asin
     turn_on_summary: 1
   dynamic_arguments:
     shop_argument: sids
     shop_batch_mode: list
     source_field: sid
-    batch_size: 50
+    batch_size: 2
     database_param: sid_values
+  pagination:
+    enabled: true
+    page_argument: offset
+    page_start: 0
+    page_size_argument: length
+    page_size: 1000
+    max_pages: 1000
+    page_value_mode: offset
 database:
   table: chatbi.sale_report_asin
-  sql: "select\n  sid,\n  asin,\n  report_date,\n  rank_category,\n  cate_rank,\n\
-    \  small_category_rank_json,\n  avg_star,\n  reviews_count,\n  sessions_total,\n\
-    \  sessions_browser,\n  sessions_mobile,\n  page_views_total,\n  page_views_browser,\n\
-    \  page_views_mobile\nfrom chatbi.sale_report_asin\nwhere sid in :sid_values\n"
+  sql: |
+    with
+    base as (
+      select *
+      from chatbi.sale_report_asin
+      where sid in :sid_values
+        and report_date between :start_date and :end_date
+    ),
+    latest as (
+      select
+        sid,
+        asin,
+        cate_rank,
+        avg_star,
+        reviews_count
+      from (
+        select
+          sid,
+          asin,
+          cate_rank,
+          avg_star,
+          reviews_count,
+          row_number() over (partition by sid, asin order by report_date desc) as rn
+        from base
+      ) ranked
+      where rn = 1
+    ),
+    agg as (
+      select
+        sid,
+        asin,
+        sum(sessions_total) as sessions_total,
+        sum(sessions_browser) as sessions_browser,
+        sum(sessions_mobile) as sessions_mobile,
+        sum(page_views_total) as page_views_total,
+        sum(page_views_browser) as page_views_browser,
+        sum(page_views_mobile) as page_views_mobile
+      from base
+      group by
+        sid,
+        asin
+    )
+    select
+      latest.sid as sid,
+      latest.asin as asin,
+      :report_date as report_date,
+      latest.cate_rank as cate_rank,
+      latest.avg_star as avg_star,
+      latest.reviews_count as reviews_count,
+      agg.sessions_total as sessions_total,
+      agg.sessions_browser as sessions_browser,
+      agg.sessions_mobile as sessions_mobile,
+      agg.page_views_total as page_views_total,
+      agg.page_views_browser as page_views_browser,
+      agg.page_views_mobile as page_views_mobile
+    from latest
+    left join agg on latest.sid = agg.sid and latest.asin = agg.asin
   params:
-    end_date: '2026-06-30'
-    start_date: '2026-06-01'
+    end_date: "2026-07-31"
+    report_date: 2026-07-01 - 2026-07-31
+    start_date: "2026-07-01"
 compare:
   dimensions:
-  - sid
-  - asin
-  - report_date
+    - sid
+    - asin
+    - report_date
   metrics:
-  - rank_category
-  - cate_rank
-  - small_category_rank_json
-  - avg_star
-  - reviews_count
-  - sessions_total
-  - sessions_browser
-  - sessions_mobile
-  - page_views_total
-  - page_views_browser
-  - page_views_mobile
+    # - rank_category
+    - cate_rank
+    # - small_category_rank_json
+    - avg_star
+    - reviews_count
+    - sessions_total
+    - sessions_browser
+    - sessions_mobile
+    - page_views_total
+    - page_views_browser
+    - page_views_mobile
   dimension_mappings:
     sid: sid
     asin: asin
     report_date: report_date
   metric_mappings:
-    rank_category: rank_category
+    # rank_category: rank_category
     cate_rank: cate_rank
-    small_cate_rank: small_category_rank_json
+    # small_cate_rank: small_category_rank_json
     avg_star: avg_star
     reviews_count: reviews_count
     sessions_total: sessions_total
@@ -64,19 +127,26 @@ compare:
   tolerance: 0.01
 notes:
   raw_dimensions:
-  - sid
-  - +asin
-  - +report_date(领星中是start_date+end_date)
+    - sid
+    - +asin
+    - +report_date(领星中是start_date+end_date)
   tool_output_fields:
-  - rank_category
-  - cate_rank
-  - small_cate_rank
-  - avg_star
-  - reviews_count
-  - sessions_total
-  - sessions
-  - sessions_mobile
-  - page_views_total
-  - page_views
-  - page_views_mobile
-  source: 由 data/feishu/lingxing_mcp_tools.xlsx 的可用tool表生成，启用前请检查 SQL 和字段口径。
+    - rank_category
+    - cate_rank
+    - small_cate_rank
+    - avg_star
+    - reviews_count
+    - sessions_total
+    - sessions
+    - sessions_mobile
+    - page_views_total
+    - page_views
+    - page_views_mobile
+  non_numeric_fields:
+    - rank_category
+    - small_cate_rank
+    - small_category_rank_json
+  inactive_dimensions: []
+  source:
+    Generated from data/feishu/lingxing_mcp_tools.xlsx; review SQL and field
+    paths before enabling.

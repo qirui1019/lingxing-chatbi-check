@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "lingxing-chatbi-check"
 version = "0.1.0"
-description = "自动校验领星 MCP tool 出参和 Doris/MySQL ChatBI 表数据。"
+description = "自动校验领星 MCP tool 出参与 Doris/MySQL ChatBI 表数据"
 requires-python = ">=3.11"
 dependencies = [
     "mcp[cli]>=2.0.0",

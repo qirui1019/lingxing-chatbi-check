@@ -1,5 +1,5 @@
 enabled: false
-name: "示例 tool vs 示例表"
+name: "Example tool vs example table"
 
 auth:
   mode: all_users
@@ -25,11 +25,12 @@ database:
   sql: |
     select
       sid,
-      report_date,
-      metric_1
+      sum(metric_1) as metric_1
     from chatbi.replace_with_chatbi_table
     where sid in :sid_values
       and report_date between :start_date and :end_date
+    group by
+      sid
   params:
     start_date: "2026-08-01"
     end_date: "2026-08-07"
@@ -37,15 +38,13 @@ database:
 compare:
   dimensions:
     - sid
-    - report_date
   metrics:
     - metric_1
   dimension_mappings:
     sid: sid
-    report_date: report_date
   metric_mappings:
     tool_metric_1: metric_1
   tolerance: 0.01
 
 notes:
-  source: "示例模板。启用前请检查 tool 入参、SQL、维度和指标。"
+  source: "Example template. Review tool args, SQL, dimensions, and metrics before enabling."

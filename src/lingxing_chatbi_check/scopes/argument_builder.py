@@ -36,7 +36,10 @@ def build_tool_argument_batches(
         return [
             {
                 **base_arguments,
-                dynamic_arguments.shop_argument: batch,
+                dynamic_arguments.shop_argument: _list_argument_value(
+                    dynamic_arguments.shop_argument,
+                    batch,
+                ),
             }
             for batch in _chunks(values, dynamic_arguments.batch_size)
         ]
@@ -56,10 +59,14 @@ def values_for_database_scope(
     shops: list[AuthorizedShop],
     dynamic_arguments: DynamicArgumentsSpec,
 ) -> list[str]:
+    source_field = (
+        dynamic_arguments.database_source_field
+        or dynamic_arguments.source_field
+    )
     return [
         value
         for shop in shops
-        if (value := shop.value_for(dynamic_arguments.source_field)) is not None
+        if (value := shop.value_for(source_field)) is not None
     ]
 
 
@@ -76,3 +83,9 @@ def _chunks(values: Iterable[str], size: int) -> list[list[str]]:
     if current:
         chunked.append(current)
     return chunked
+
+
+def _list_argument_value(shop_argument: str | None, values: list[str]) -> object:
+    if shop_argument == "sids":
+        return ",".join(str(value) for value in values)
+    return values

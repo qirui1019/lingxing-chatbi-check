@@ -1,0 +1,81 @@
+enabled: true
+name: get_profit_report_msku vs chatbi.sale_report_msku_settlement
+auth:
+  mode: all_users
+scope:
+  shop_discovery: get_my_sids
+  listing_mapping: erp_listing
+tool:
+  name: get_profit_report_msku
+  arguments:
+    startDate: "2026-06-01"
+    endDate: "2026-06-30"
+  dynamic_arguments:
+    shop_argument: null
+    shop_batch_mode: none
+    source_field: sid
+    batch_size: 1
+    database_param: sid_values
+  pagination:
+    enabled: true
+    page_argument: current
+    page_start: 1
+    page_size_argument: size
+    page_size: 1000
+    max_pages: 1000
+    page_value_mode: page
+    batch_timeout_seconds: null
+database:
+  table: chatbi.sale_report_msku_settlement
+  sql: |
+    select
+      sid,
+      msku,
+      date_format(settlement_date, '%Y-%m') as settlement_date,
+      sum(settlement_sales_amount) as settlement_sales_amount,
+      sum(settlement_units) as settlement_units,
+      sum(settlement_promotion_discount) as settlement_promotion_discount,
+      sum(settlement_gross_profit) as settlement_gross_profit
+    from chatbi.sale_report_msku_settlement
+    where sid in :sid_values
+      and settlement_date between :settlement_start_date and :settlement_end_date
+    group by
+      sid,
+      msku,
+      date_format(settlement_date, '%Y-%m')
+  params:
+    settlement_start_date: "2026-06-01"
+    settlement_end_date: "2026-06-30"
+compare:
+  dimensions:
+    - sid
+    - msku
+    - reportDateMonth
+  metrics:
+    - settlement_sales_amount
+    - settlement_units
+    - settlement_promotion_discount
+    - settlement_gross_profit
+  dimension_mappings:
+    sid: sid
+    msku: msku
+    reportDateMonth: settlement_date
+  metric_mappings:
+    totalSalesAmount: settlement_sales_amount
+    totalSalesQuantity: settlement_units
+    promotionalRebates: settlement_promotion_discount
+    grossProfit: settlement_gross_profit
+  tolerance: 0.01
+notes:
+  raw_dimensions:
+    - sid
+    - msku
+    - reportDateMonth
+  tool_output_fields:
+    - totalSalesAmount
+    - totalSalesQuantity
+    - promotionalRebates
+    - grossProfit
+  non_numeric_fields: []
+  inactive_dimensions: []
+  source: Added from data/samples/mcp_outputs/get_profit_report_msku.json.

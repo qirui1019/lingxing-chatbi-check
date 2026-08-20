@@ -21,8 +21,21 @@ class DynamicArgumentsSpec:
     shop_argument: str | None = None
     shop_batch_mode: str = "none"
     source_field: str = "sid"
+    database_source_field: str | None = None
     batch_size: int = 50
     database_param: str | None = None
+
+
+@dataclass(frozen=True)
+class PaginationSpec:
+    enabled: bool = False
+    page_argument: str = "page"
+    page_start: int = 1
+    page_size_argument: str = "length"
+    page_size: int = 1000
+    max_pages: int = 1000
+    page_value_mode: str = "page"
+    batch_timeout_seconds: float | None = 300
 
 
 @dataclass(frozen=True)
@@ -32,6 +45,7 @@ class ToolSpec:
     dynamic_arguments: DynamicArgumentsSpec = field(
         default_factory=DynamicArgumentsSpec
     )
+    pagination: PaginationSpec | None = None
 
 
 @dataclass(frozen=True)
@@ -47,6 +61,7 @@ class CompareSpec:
     metrics: list[str]
     dimension_mappings: dict[str, str] = field(default_factory=dict)
     metric_mappings: dict[str, str] = field(default_factory=dict)
+    metric_dimension_mappings: dict[str, dict[str, str]] = field(default_factory=dict)
     tolerance: float = 0.0
 
 

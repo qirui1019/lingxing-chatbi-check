@@ -8,58 +8,137 @@ scope:
 tool:
   name: query_product_performance_asin_lists
   arguments:
-    end_date: '2026-06-30'
-    start_date: '2026-06-01'
+    end_date: "2026-06-30"
+    start_date: "2026-06-01"
     date_type: purchase
+    currency_code: ""
     summary_field: asin
     turn_on_summary: 1
   dynamic_arguments:
     shop_argument: sids
     shop_batch_mode: list
     source_field: sid
-    batch_size: 50
+    batch_size: 2
     database_param: sid_values
+  pagination:
+    enabled: true
+    page_argument: offset
+    page_start: 0
+    page_size_argument: length
+    page_size: 1000
+    max_pages: 1000
+    page_value_mode: offset
 database:
   table: chatbi.sale_report_msku_order
-  sql: "select\n  sid,\n  asin,\n  report_date,\n  order_units,\n  order_sales_amount,\n\
-    \  order_promotion_discount,\n  order_net_sales_amount,\n  afn_fulfillable_quantity,\n\
-    \  reserved_fc_transfers,\n  reserved_fc_processing,\n  afn_inbound_receiving_quantity,\n\
-    \  order_gross_profit,\n  return_count,\n  ad_impressions,\n  ad_clicks,\n  ad_cost,\n\
-    \  ad_sales_amount,\n  ad_order_count,\n  sp_ad_cost,\n  sb_ad_cost,\n  sbv_ad_cost,\n\
-    \  sd_ad_cost,\n  sp_ad_sales_amount,\n  sb_ad_sales_amount,\n  sbv_ad_sales_amount,\n\
-    \  sd_ad_sales_amount\nfrom chatbi.sale_report_msku_order\nwhere sid in :sid_values\n"
+  sql: |
+    with
+    base as (
+      select *
+      from chatbi.sale_report_msku_order
+      where sid in :sid_values
+        and report_date between :start_date and :end_date
+    ),
+    agg as (
+      select
+        sid,
+        asin,
+        msku,
+        fnsku,
+        :report_date as report_date,
+        sum(order_units) as order_units,
+        sum(order_sales_amount) as order_sales_amount,
+        sum(order_promotion_discount) as order_promotion_discount,
+        sum(order_net_sales_amount) as order_net_sales_amount,
+        sum(order_count) as order_count,
+        sum(b2b_units) as b2b_units,
+        sum(b2b_sales_amount) as b2b_sales_amount,
+        sum(order_gross_profit) as order_gross_profit,
+        sum(return_count) as return_count,
+        sum(ad_impressions) as ad_impressions,
+        sum(ad_clicks) as ad_clicks,
+        sum(ad_cost) as ad_cost,
+        sum(ad_sales_amount) as ad_sales_amount,
+        sum(ad_order_count) as ad_order_count,
+        sum(sp_ad_cost) as sp_ad_cost,
+        sum(sb_ad_cost) as sb_ad_cost,
+        sum(sbv_ad_cost) as sbv_ad_cost,
+        sum(sd_ad_cost) as sd_ad_cost,
+        sum(sp_ad_sales_amount) as sp_ad_sales_amount,
+        sum(sb_ad_sales_amount) as sb_ad_sales_amount,
+        sum(sbv_ad_sales_amount) as sbv_ad_sales_amount,
+        sum(sd_ad_sales_amount) as sd_ad_sales_amount
+      from base
+      group by
+        sid,
+        asin,
+        msku,
+        fnsku
+    )
+    select
+      agg.sid,
+      agg.asin,
+      agg.msku,
+      agg.fnsku,
+      agg.report_date,
+      agg.order_units,
+      agg.order_sales_amount,
+      agg.order_promotion_discount,
+      agg.order_net_sales_amount,
+      agg.order_count,
+      agg.b2b_units,
+      agg.b2b_sales_amount,
+      agg.order_gross_profit,
+      agg.return_count,
+      agg.ad_impressions,
+      agg.ad_clicks,
+      agg.ad_cost,
+      agg.ad_sales_amount,
+      agg.ad_order_count,
+      agg.sp_ad_cost,
+      agg.sb_ad_cost,
+      agg.sbv_ad_cost,
+      agg.sd_ad_cost,
+      agg.sp_ad_sales_amount,
+      agg.sb_ad_sales_amount,
+      agg.sbv_ad_sales_amount,
+      agg.sd_ad_sales_amount
+    from agg
   params:
-    end_date: '2026-06-30'
-    start_date: '2026-06-01'
+    end_date: "2026-06-30"
+    report_date: 2026-06-01 - 2026-06-30
+    start_date: "2026-06-01"
 compare:
   dimensions:
-  - sid
-  - asin
-  - report_date
+    - sid
+    - asin
+    - report_date
   metrics:
-  - order_units
-  - order_sales_amount
-  - order_promotion_discount
-  - order_net_sales_amount
-  - afn_fulfillable_quantity
-  - reserved_fc_transfers
-  - reserved_fc_processing
-  - afn_inbound_receiving_quantity
-  - order_gross_profit
-  - return_count
-  - ad_impressions
-  - ad_clicks
-  - ad_cost
-  - ad_sales_amount
-  - ad_order_count
-  - sp_ad_cost
-  - sb_ad_cost
-  - sbv_ad_cost
-  - sd_ad_cost
-  - sp_ad_sales_amount
-  - sb_ad_sales_amount
-  - sbv_ad_sales_amount
-  - sd_ad_sales_amount
+    - order_units
+    - order_sales_amount
+    - order_promotion_discount
+    - order_net_sales_amount
+    - order_count
+    - b2b_units
+    - b2b_sales_amount
+    # - afn_fulfillable_quantity
+    # - reserved_fc_transfers
+    # - reserved_fc_processing
+    # - afn_inbound_receiving_quantity
+    - order_gross_profit
+    - return_count
+    - ad_impressions
+    - ad_clicks
+    - ad_cost
+    - ad_sales_amount
+    - ad_order_count
+    - sp_ad_cost
+    - sb_ad_cost
+    - sbv_ad_cost
+    - sd_ad_cost
+    - sp_ad_sales_amount
+    - sb_ad_sales_amount
+    - sbv_ad_sales_amount
+    - sd_ad_sales_amount
   dimension_mappings:
     sid: sid
     asin: asin
@@ -67,12 +146,15 @@ compare:
   metric_mappings:
     volume: order_units
     amount: order_sales_amount
-    net_amount: order_promotion_discount
-    promotion_discount: order_net_sales_amount
-    afn_fulfillable_quantity: afn_fulfillable_quantity
-    reserved_fc_transfers: reserved_fc_transfers
-    reserved_fc_processing: reserved_fc_processing
-    afn_inbound_receiving_quantity: afn_inbound_receiving_quantity
+    promotion_discount: order_promotion_discount
+    net_amount: order_net_sales_amount
+    order_items: order_count
+    b2b_volume: b2b_units
+    b2b_amount: b2b_sales_amount
+    # afn_fulfillable_quantity: afn_fulfillable_quantity
+    # reserved_fc_transfers: reserved_fc_transfers
+    # reserved_fc_processing: reserved_fc_processing
+    # afn_inbound_receiving_quantity: afn_inbound_receiving_quantity
     gross_profit: order_gross_profit
     return_count: return_count
     impressions: ad_impressions
@@ -88,34 +170,58 @@ compare:
     shared_ads_sb_sales: sb_ad_sales_amount
     shared_ads_sbv_sales: sbv_ad_sales_amount
     ads_sd_sales: sd_ad_sales_amount
+  # metric_dimension_mappings:
+  #   afn_fulfillable_quantity:
+  #     sid: sid
+  #     msku: msku
+  #     fnsku: fnsku
+  #   reserved_fc_transfers:
+  #     sid: sid
+  #     msku: msku
+  #     fnsku: fnsku
+  #   reserved_fc_processing:
+  #     sid: sid
+  #     msku: msku
+  #     fnsku: fnsku
+  #   afn_inbound_receiving_quantity:
+  #     sid: sid
+  #     msku: msku
+  #     fnsku: fnsku
   tolerance: 0.01
 notes:
   raw_dimensions:
-  - sid
-  - +asin
-  - +report_date(领星中是start_date+end_date)
+    - sid
+    - +asin
+    - +report_date(领星中是start_date+end_date)
   tool_output_fields:
-  - volume
-  - amount
-  - net_amount
-  - promotion_discount
-  - afn_fulfillable_quantity
-  - reserved_fc_transfers
-  - reserved_fc_processing
-  - afn_inbound_receiving_quantity
-  - gross_profit
-  - return_count
-  - impressions
-  - clicks
-  - spend
-  - ad_sales_amount
-  - ad_order_quantity
-  - ads_sp_cost
-  - shared_ads_sb_cost
-  - shared_ads_sbv_cost
-  - ads_sd_cost
-  - ads_sp_sales
-  - shared_ads_sb_sales
-  - shared_ads_sbv_sales
-  - ads_sd_sales
-  source: 由 data/feishu/lingxing_mcp_tools.xlsx 的可用tool表生成，启用前请检查 SQL 和字段口径。
+    - volume
+    - amount
+    - net_amount
+    - promotion_discount
+    - order_items
+    - b2b_volume
+    - b2b_amount
+    # - afn_fulfillable_quantity
+    # - reserved_fc_transfers
+    # - reserved_fc_processing
+    # - afn_inbound_receiving_quantity
+    - gross_profit
+    - return_count
+    - impressions
+    - clicks
+    - spend
+    - ad_sales_amount
+    - ad_order_quantity
+    - ads_sp_cost
+    - shared_ads_sb_cost
+    - shared_ads_sbv_cost
+    - ads_sd_cost
+    - ads_sp_sales
+    - shared_ads_sb_sales
+    - shared_ads_sbv_sales
+    - ads_sd_sales
+  non_numeric_fields: []
+  inactive_dimensions: []
+  source:
+    Generated from data/feishu/lingxing_mcp_tools.xlsx; review SQL and field
+    paths before enabling.
