@@ -1,4 +1,4 @@
-enabled: true
+enabled: false
 name: get_profit_report_msku vs chatbi.sale_report_msku_settlement
 auth:
   mode: all_users

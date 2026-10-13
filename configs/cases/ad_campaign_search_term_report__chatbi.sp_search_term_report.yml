@@ -1,4 +1,4 @@
-enabled: false
+enabled: true
 name: ad_campaign_search_term_report vs chatbi.sp_search_term_report
 auth:
   mode: all_users

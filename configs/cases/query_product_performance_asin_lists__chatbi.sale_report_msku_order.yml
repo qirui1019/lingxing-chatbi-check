@@ -8,8 +8,8 @@ scope:
 tool:
   name: query_product_performance_asin_lists
   arguments:
-    end_date: "2026-06-30"
-    start_date: "2026-06-01"
+    end_date: "2026-07-31"
+    start_date: "2026-07-01"
     date_type: purchase
     currency_code: ""
     summary_field: asin
@@ -104,9 +104,9 @@ database:
       agg.sd_ad_sales_amount
     from agg
   params:
-    end_date: "2026-06-30"
-    report_date: 2026-06-01 - 2026-06-30
-    start_date: "2026-06-01"
+    end_date: "2026-07-31"
+    report_date: 2026-07-01 - 2026-07-31
+    start_date: "2026-07-01"
 compare:
   dimensions:
     - sid
